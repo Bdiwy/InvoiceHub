@@ -1,17 +1,20 @@
-using System.Text;
 using Application;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Infrastructure;
+using Infrastructure.Seed;
+using InvoiceHub.Api.Middlewares;
+using InvoiceHub.Application.Requests;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
-using FluentValidation;
-using FluentValidation.AspNetCore;
-using InvoiceHub.Application.Requests;
-using Infrastructure.Seed;
-using InvoiceHub.Api.Middlewares;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -50,13 +53,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssemblyContaining<LoginRequestValidator>());
-builder.Services.AddAuthorization();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    var policy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    options.Filters.Add(new AuthorizeFilter(policy));
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen(options =>
