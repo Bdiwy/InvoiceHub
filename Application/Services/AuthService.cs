@@ -60,10 +60,13 @@ public class AuthService(
         return AuthResponseDto.SuccessRegister();
     }
 
-    public async Task<AuthResponseDto> LogoutAsync(Guid userId, string deviceType, CancellationToken ct)
+    public async Task<AuthResponseDto> LogoutAsync(Guid userId, string? apiKey, string deviceType, CancellationToken ct)
     {
         if (!TryParseDeviceType(deviceType, out var parsedDeviceType))
             return AuthResponseDto.Failure("Unsupported device type.");
+        
+        if (!ValidateMobileApiKey(parsedDeviceType, apiKey))
+            return AuthResponseDto.Failure("Invalid mobile security key.");
 
         await RevokeOldDeviceTokenAsync(userId, parsedDeviceType, ct);
         return AuthResponseDto.SuccessLogout();
