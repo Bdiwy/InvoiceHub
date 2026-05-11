@@ -1,11 +1,13 @@
 using MediatR;
 using Domain.Entities;
+using InvoiceHub.Application.Requests.DTOs;
+using Application.Interfaces.Queries;
 namespace Application.Handlers.ClientHandlers;
 
-public record GetClientByIdHandler(Guid ClientId) : IRequest<ClientResponseDto>;
-public class GetClientByIdHandler(ICommonQueries<Client> clientRepo) : IRequestHandler<GetClientByIdHandler, ClientResponseDto>
+public record GetClientByIdRequest(Guid ClientId) : IRequest<ClientResponseDto>;
+public class GetClientByIdHandler(ICommonQueries<Client> clientRepo) : IRequestHandler<GetClientByIdRequest, ClientResponseDto?>
 {
-    public async Task<ClientResponseDto?> Handle(GetClientByIdHandler request, CancellationToken cancellationToken)
+    public async Task<ClientResponseDto?> Handle(GetClientByIdRequest request, CancellationToken cancellationToken)
     {
         
         var client = await clientRepo.FetchFirstAsync(c => c.Id == request.ClientId, cancellationToken);
@@ -13,13 +15,14 @@ public class GetClientByIdHandler(ICommonQueries<Client> clientRepo) : IRequestH
             return null;
 
         return new ClientResponseDto
-        {
-            Id = client.Id,
-            ContractName = client.ContactName,
-            ContractEmail = client.ContactEmail,
-            ContractPhoneNumber = client.ContactPhoneNumber,
-            ContractAddress = client.ContactAddress,
-            TradeLicenseNumber = client.TradeLicenseNumber
-        };
+        (
+            client.Id,
+            client.CompanyName,
+            client.ContactName,
+            client.ContactEmail,
+            client.ContactPhone,
+            client.ContactAddress,
+            client.TradeLicenseNumber
+        );
     }
 }
