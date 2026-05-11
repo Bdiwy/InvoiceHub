@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Infrastructure.Services
 {
-public class TenantService(IHttpContextAccessor httpContextAccessor) : ISingletonService , ITenantService
+public class TenantService(IHttpContextAccessor httpContextAccessor) : IAddScopedService , ITenantService
     {
         public Guid? GetTenantId()
         {

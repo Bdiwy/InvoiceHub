@@ -1,7 +1,10 @@
 using MediatR;
 using Domain.Entities;
+using InvoiceHub.Application.Requests.DTOs;
+using Application.Interfaces.Queries;
+using Application.Interfaces;
 namespace InvoiceHub.Application.Handlers.ClientHandlers;
-public record CreateClientHandler(
+public record CreateClientRequest(
     string CompanyName,
     string ContactName, 
     string ContactEmail, 
@@ -9,31 +12,31 @@ public record CreateClientHandler(
     string ContactAddress,
     string TradeLicenseNumber
 ) : IRequest<ClientResponseDto>;
-public class CreateClientHandler(ICommonCommands<Client> clientRepo) : IRequestHandler<CreateClientHandler, ClientResponseDto>
+public class CreateClientHandler(ICommonCommands<Client> clientRepo, ILogedInUserData _currantUser) : IRequestHandler<CreateClientRequest, ClientResponseDto>
 {
-    public async Task<ClientResponseDto> Handle(CreateClientHandler request, CancellationToken cancellationToken)
+    public async Task<ClientResponseDto> Handle(CreateClientRequest request, CancellationToken cancellationToken)
     {
-        var newClient = new Client
+        Client newClient = new Client
         {
-            Id = Guid.NewGuid(),
             CompanyName = request.CompanyName,
             ContactName = request.ContactName,
             ContactEmail = request.ContactEmail,
             ContactPhone = request.ContactPhone,
             ContactAddress = request.ContactAddress,
-            TradeLicenseNumber = request.TradeLicenseNumber
+            TradeLicenseNumber = request.TradeLicenseNumber,
+
         };  
 
         await clientRepo.SaveMeAsync(newClient);
 
         return new ClientResponseDto(
-            Id = newClient.Id,
-            CompanyName = newClient.CompanyName,
-            ContactName = newClient.ContactName,
-            ContactEmail = newClient.ContactEmail,
-            ContactPhone = newClient.ContactPhone,
-            ContactAddress = newClient.ContactAddress,
-            TradeLicenseNumber = newClient.TradeLicenseNumber
+            newClient.Id,
+            newClient.CompanyName,
+            newClient.ContactName,
+            newClient.ContactEmail,
+            newClient.ContactPhone,
+            newClient.ContactAddress,
+            newClient.TradeLicenseNumber
         );
     }
 }

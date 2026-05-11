@@ -1,7 +1,6 @@
-namespace Domain.Interfaces
+namespace Domain.Interfaces;
+
+public interface ITenantEntity
 {
-    public interface ITenantEntity
-    {
-        Guid TenantId { get; set; }
-    }
+    Guid TenantId { get; set; }
 }
