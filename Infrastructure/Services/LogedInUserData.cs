@@ -5,7 +5,7 @@ using System.Security.Claims;
 
 namespace Infrastructure.Services;
 
-public class LogedInUserData(IHttpContextAccessor _httpContextAccessor) : ILogedInUserData
+public class LogedInUserData(IHttpContextAccessor _httpContextAccessor) : IScopedService , ILogedInUserData
 {
     private ClaimsPrincipal? AuthenticatedUser => _httpContextAccessor.HttpContext?.User;
     public bool IsAuthenticated => AuthenticatedUser?.Identity?.IsAuthenticated ?? false;

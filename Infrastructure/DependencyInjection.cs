@@ -19,7 +19,7 @@ public static IServiceCollection AddInfrastructure(this IServiceCollection servi
             .AddClasses(classes => classes.AssignableTo<ITransientService>())
                 .AsImplementedInterfaces()
                 .WithTransientLifetime()
-            .AddClasses(classes => classes.AssignableTo<IAddScopedService>())
+            .AddClasses(classes => classes.AssignableTo<ISingletonService>())
                 .AsImplementedInterfaces()
                 .WithSingletonLifetime()
         );

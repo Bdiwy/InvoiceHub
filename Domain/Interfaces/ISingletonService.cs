@@ -1,2 +1,2 @@
 namespace Domain.Interfaces;
-public interface IAddScopedService { }
+public interface ISingletonService { }
