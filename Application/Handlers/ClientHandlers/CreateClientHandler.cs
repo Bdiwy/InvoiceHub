@@ -2,7 +2,6 @@ using MediatR;
 using Domain.Entities;
 using InvoiceHub.Application.Requests.DTOs;
 using Application.Interfaces.Queries;
-using Application.Interfaces;
 namespace InvoiceHub.Application.Handlers.ClientHandlers;
 public record CreateClientRequest(
     string CompanyName,
@@ -12,7 +11,7 @@ public record CreateClientRequest(
     string ContactAddress,
     string TradeLicenseNumber
 ) : IRequest<ClientResponseDto>;
-public class CreateClientHandler(ICommonCommands<Client> clientRepo, ILogedInUserData _currantUser) : IRequestHandler<CreateClientRequest, ClientResponseDto>
+public class CreateClientHandler(ICommonCommands<Client> clientRepo) : IRequestHandler<CreateClientRequest, ClientResponseDto>
 {
     public async Task<ClientResponseDto> Handle(CreateClientRequest request, CancellationToken cancellationToken)
     {
