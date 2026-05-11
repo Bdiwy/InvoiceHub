@@ -27,9 +27,9 @@ public class ClientController(IMediator mediator)  : ControllerBase
     }
 
     [HttpPost("create-client")]
-    public async Task<ActionResult<ClientResponseDto>> CreateClient([FromBody] CreateClientRequestDto request , CancellationToken ct)
+    public async Task<ActionResult<ClientResponseDto>> CreateClient([FromBody] CreateClientRequest request , CancellationToken ct)
     {
-        var result = await mediator.Send(new CreateClientHandler(request), ct);
+        var result = await mediator.Send(request, ct);
         return Ok(result); 
     }
 
