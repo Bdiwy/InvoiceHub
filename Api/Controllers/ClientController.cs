@@ -11,7 +11,15 @@ namespace InvoiceHub.Api.Controllers;
 [Route("api/clients")]
 public class ClientController(IMediator mediator)  : ControllerBase
 {
-    [HttpGet("get-client-by-id/{clientId:Guid}")]
+
+    [HttpGet("/")]
+    public async Task<ActionResult<IEnumerable<ClientsResponseDto>>> GetAllClients(CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetAllClientsRequest(), ct);
+        return Ok(result); 
+    }
+
+    [HttpGet("/{clientId:Guid}")]
     public async Task<ActionResult<ClientResponseDto?>> GetClientById(GetClientByIdRequest request , CancellationToken ct)
     {
         var result = await mediator.Send(request, ct);
@@ -20,15 +28,8 @@ public class ClientController(IMediator mediator)  : ControllerBase
         return Ok(result); 
     }
 
-    [HttpGet("get-all-clients")]
-    public async Task<ActionResult<IEnumerable<ClientsResponseDto>>> GetAllClients(CancellationToken ct)
-    {
-        var result = await mediator.Send(new GetAllClientsRequest(), ct);
-        return Ok(result); 
-    }
-
-    [HttpPost("create-client")]
-    public async Task<ActionResult<ClientResponseDto>> CreateClient([FromBody] CreateClientRequest request , CancellationToken ct)
+    [HttpPost("/create")]
+    public async Task<ActionResult<ClientResponseDto>> CreateClient(CreateClientRequest request , CancellationToken ct)
     {
         var result = await mediator.Send(request, ct);
         return Ok(result); 
