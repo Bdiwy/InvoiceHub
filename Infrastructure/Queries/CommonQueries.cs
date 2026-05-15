@@ -34,5 +34,11 @@ namespace Infrastructure.Queries
         {
             return await _dbSet.AsNoTracking().Where(condition).ToListAsync();
         }
+
+        public async Task<bool> CheckExistencData(Expression<Func<T, bool>> condition, CancellationToken ct)
+        {
+            return await _dbSet.AsNoTracking().AnyAsync(condition, ct);
+        }
+
     }
 }
