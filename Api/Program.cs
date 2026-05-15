@@ -76,7 +76,13 @@ builder.Services.AddSwaggerGen(options =>
         Description = "InvoiceHub HTTP API"
     });
 });
+
+
+builder.Services.AddResponseCompression();
+
 var app = builder.Build();
+
+app.UseResponseCompression();
 
 using (var scope = app.Services.CreateScope())
 {

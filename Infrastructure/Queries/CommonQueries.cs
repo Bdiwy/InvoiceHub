@@ -13,27 +13,26 @@ namespace Infrastructure.Queries
     where T : class
     {
         private readonly DbSet<T> _dbSet = context.Set<T>();
-        public async Task<T?> FetchFirstAsync(Expression<Func<T, bool>> predicate , CancellationToken ct)
+
+        public async Task<T?> FetchFirstAsync(Expression<Func<T, bool>> predicate, CancellationToken ct)
         {
-            return await _dbSet.FirstOrDefaultAsync(predicate,ct);
+            return await _dbSet.AsNoTracking().FirstOrDefaultAsync(predicate, ct);
         }
 
         public async Task<T?> GetEntityByIdAsync(Guid id)
         {
-            return await _dbSet.FindAsync(id);
+            return await _dbSet.AsNoTracking()
+                .FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
         }
 
         public async Task<List<T>> GetAllEntitiesAsync()
         {
-            return await _dbSet.ToListAsync();
+            return await _dbSet.AsNoTracking().ToListAsync();
         }
 
-        public async Task<List<T>> GetEntitiesDataWithConditionAsync(Func<T, bool> condition)
+        public async Task<List<T>> GetEntitiesDataWithConditionAsync(Expression<Func<T, bool>> condition)
         {
-            return await Task.FromResult(_dbSet
-                            .AsEnumerable()
-                            .Where(condition)
-                            .ToList());
+            return await _dbSet.AsNoTracking().Where(condition).ToListAsync();
         }
     }
 }
