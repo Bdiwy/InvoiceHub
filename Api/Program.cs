@@ -20,8 +20,8 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddCors(options => {
-    options.AddPolicy("AllowReact", policy => {
-        policy.WithOrigins("http://localhost:3000") 
+    options.AddPolicy("AllowFront", policy => {
+        policy.WithOrigins("http://localhost:5173") 
         .AllowAnyHeader()
         .AllowAnyMethod();
     });
@@ -104,7 +104,7 @@ app.UseHsts();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowReact");
+app.UseCors("AllowFront");
 
 if (app.Environment.IsDevelopment())
 {
