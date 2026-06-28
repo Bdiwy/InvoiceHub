@@ -81,7 +81,7 @@ public class TokenValidationMiddleware(RequestDelegate next)
         if (allowsAnonymous)
             return false;
 
-        return endpoint.Metadata.GetMetadata<IAuthorizeData>() is not null;
+        return true;
     }
 
     private static string? ExtractBearerToken(HttpContext context)
