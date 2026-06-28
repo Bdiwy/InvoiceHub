@@ -107,7 +107,7 @@ public class AuthService(
             refreshTokenExpiry);
 
         await tokenRepo.SaveMeAsync(newTokenEntity, ct);
-        return AuthResponseDto.SuccessLogin(newAccessToken, newRefreshToken, user);
+        return AuthResponseDto.Success(newAccessToken, newRefreshToken, user);
     }
 
     private static bool TryParseDeviceType(string deviceType, out DeviceType parsedDeviceType)

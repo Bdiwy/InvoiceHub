@@ -13,6 +13,17 @@ public record AuthResponseDto(
 {
 
 // Factory method for success
+public static AuthResponseDto Success(string token,string refreshToken, User user , string message = null) => new(
+    IsSuccess: true,
+    Message: message,
+    Token: token,
+    Username: user.Username,
+    Email: user.Email,
+    IsOwner: user.IsOwner,
+    TenantId: user.TenantId,
+    RefreshToken:refreshToken
+);
+
 public static AuthResponseDto SuccessLogin(string token,string refreshToken, User user) => new(
     IsSuccess: true,
     Message: "Login successful.",
