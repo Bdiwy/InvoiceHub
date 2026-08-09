@@ -8,7 +8,9 @@ using InvoiceHub.Application.Requests;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -64,7 +66,21 @@ builder.Services.AddControllers(options =>
         .RequireAuthenticatedUser()
         .Build();
     options.Filters.Add(new AuthorizeFilter(policy));
-});
+}).ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var problemFactroy = context.HttpContext.RequestServices.GetRequiredService<ProblemDetailsFactory>();
+            var response = problemFactroy.CreateValidationProblemDetails(
+                context.HttpContext,
+                context.ModelState,
+                statusCode: StatusCodes.Status400BadRequest,
+                detail: "One or more validation errors occurred."
+                );
+
+            return new BadRequestObjectResult(response);
+        };
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen(options =>
