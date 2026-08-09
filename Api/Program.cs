@@ -1,3 +1,4 @@
+using Api.Middlewares;
 using Application;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -139,7 +140,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
-
 app.UseExceptionHandler("/error");
 app.UseHsts();
 app.UseHttpsRedirection();
@@ -159,7 +159,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseDefaultFiles();
 app.UseAuthentication();
-app.UseMiddleware<TokenValidationMiddleware>();
+app.TokenValidationMiddleware();
+app.UseExceptionCatcherMiddleware();
 app.UseAuthorization();
 app.MapControllers();
 

@@ -1,3 +1,4 @@
+using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Queries;
 using Domain.Entities;
@@ -20,15 +21,10 @@ public class AuthService(
 {
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request, string? apiKey, string deviceType, CancellationToken ct)
     {
-        if (!TryParseDeviceType(deviceType, out var parsedDeviceType))
-            return AuthResponseDto.Failure("Unsupported device type.");
-
+        var parsedDeviceType = ParseDeviceType(deviceType);
         var user = await GetAndValidateUserCredentialsAsync(request, ct);
-        if (user is null)
-            return AuthResponseDto.Failure("Invalid email or password.");
 
-        if (!ValidateMobileApiKey(parsedDeviceType, apiKey))
-            return AuthResponseDto.Failure("Invalid mobile security key.");
+        ValidateMobileApiKey(parsedDeviceType, apiKey);
 
         await RevokeOldDeviceTokenAsync(user.Id, parsedDeviceType, ct);
 
@@ -47,7 +43,7 @@ public class AuthService(
         User? existingUser = await userRepo.FetchFirstAsync(u => u.Email == request.Email, ct);
         
         if (existingUser is not null)
-            return new AuthResponseDto(IsSuccess: false, Message: "Email already in use.");
+            throw new AppValidationException("Email already in use.");
         
         var newTenantId = Guid.NewGuid();
         var ownerRole = CreateNewOwnerRole(newTenantId);
@@ -62,11 +58,9 @@ public class AuthService(
 
     public async Task<AuthResponseDto> LogoutAsync(Guid userId, string? apiKey, string deviceType, CancellationToken ct)
     {
-        if (!TryParseDeviceType(deviceType, out var parsedDeviceType))
-            return AuthResponseDto.Failure("Unsupported device type.");
-        
-        if (!ValidateMobileApiKey(parsedDeviceType, apiKey))
-            return AuthResponseDto.Failure("Invalid mobile security key.");
+        var parsedDeviceType = ParseDeviceType(deviceType);
+
+        ValidateMobileApiKey(parsedDeviceType, apiKey);
 
         await RevokeOldDeviceTokenAsync(userId, parsedDeviceType, ct);
         return AuthResponseDto.SuccessLogout();
@@ -74,11 +68,9 @@ public class AuthService(
 
     public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request, string? apiKey, string deviceType, CancellationToken ct)
     {
-        if (!TryParseDeviceType(deviceType, out var parsedDeviceType))
-            return AuthResponseDto.Failure("Unsupported device type.");
+        var parsedDeviceType = ParseDeviceType(deviceType);
 
-        if (!ValidateMobileApiKey(parsedDeviceType, apiKey))
-            return AuthResponseDto.Failure("Invalid mobile security key.");
+        ValidateMobileApiKey(parsedDeviceType, apiKey);
 
         var storedToken = await tokenQueries.FetchFirstAsync(
             t => t.RefreshToken == request.RefreshToken && t.DeviceType == parsedDeviceType,
@@ -110,27 +102,36 @@ public class AuthService(
         return AuthResponseDto.Success(newAccessToken, newRefreshToken, user);
     }
 
-    private static bool TryParseDeviceType(string deviceType, out DeviceType parsedDeviceType)
-        => Enum.TryParse(deviceType, true, out parsedDeviceType);
+    private static DeviceType ParseDeviceType(string deviceType)
+    {
+        if (!Enum.TryParse(deviceType, true, out DeviceType parsedDeviceType))
+            throw new InternalServerErrorException("Unsupported device type.");
+        return parsedDeviceType;
+    }
+
 
     private async Task<User?> GetAndValidateUserCredentialsAsync(LoginRequestDto request, CancellationToken ct)
     {
         var user = await userAuthQueries.GetByEmailWithRoleAsync(request.Email, ct);
         if (user is null)
-            return null;
+            throw new AppValidationException("Invalid email or password.");
 
         return user.VerifyPassword(request.Password) ? user : null;
     }
 
-    private bool ValidateMobileApiKey(DeviceType deviceType, string? apiKey)
+    private void ValidateMobileApiKey(DeviceType deviceType, string? apiKey)
     {
         var isMobile = deviceType == DeviceType.MOBILE;
         if (!isMobile)
-            return true;
+            return;
 
         var validKey = _config["ApiSettings:MobileApiKey"];
-        return !string.IsNullOrEmpty(apiKey) && apiKey == validKey;
+        if (string.IsNullOrEmpty(apiKey) || apiKey != validKey)
+        {
+            throw new InternalServerErrorException("Invalid mobile security key.");
+        }
     }
+
 
     private Task RevokeOldDeviceTokenAsync(Guid userId, DeviceType deviceType, CancellationToken ct)
         => tokenRepo.DeleteThisAsync(t => t.UserId == userId && t.DeviceType == deviceType, ct);

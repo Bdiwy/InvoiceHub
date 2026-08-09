@@ -1,8 +1,9 @@
-using System.IdentityModel.Tokens.Jwt;
+using Api.Middlewares;
 using Domain.Entities;
 using InvoiceHub.Application.Requests.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 namespace InvoiceHub.Api.Middlewares;
 
@@ -74,7 +75,13 @@ public class TokenValidationMiddleware(RequestDelegate next)
     private static bool ShouldValidateToken(HttpContext context)
     {
         var endpoint = context.GetEndpoint();
-        if (endpoint is null)
+        var routeEndpoint = endpoint as RouteEndpoint;
+
+        if (routeEndpoint is null || endpoint is null)
+            return false;
+
+        var route = routeEndpoint.RoutePattern.RawText;
+        if (string.Equals(route, "api/auth/login", StringComparison.OrdinalIgnoreCase))
             return false;
 
         var allowsAnonymous = endpoint.Metadata.GetMetadata<IAllowAnonymous>() is not null;
@@ -107,5 +114,15 @@ public class TokenValidationMiddleware(RequestDelegate next)
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         await context.Response.WriteAsJsonAsync(AuthResponseDto.Failure(message));
+    }
+
+
+}
+
+public static class TokenValidationHandlerMiddleware
+{
+    public static IApplicationBuilder TokenValidationMiddleware(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<TokenValidationMiddleware>();
     }
 }
