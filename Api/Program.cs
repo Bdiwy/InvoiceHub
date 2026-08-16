@@ -161,6 +161,7 @@ app.UseDefaultFiles();
 app.UseAuthentication();
 app.TokenValidationMiddleware();
 app.UseExceptionCatcherMiddleware();
+app.UseQueryEngine();
 app.UseAuthorization();
 app.MapControllers();
 
