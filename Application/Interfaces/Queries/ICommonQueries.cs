@@ -10,6 +10,7 @@ namespace Application.Interfaces.Queries
     {
         public Task<T?> FetchFirstAsync(Expression<Func<T, bool>> predicate , CancellationToken cancellationToken = default);
         public Task<List<T>> GetAllEntitiesAsync();
+        public Task<List<T>> GetAllByQueryEngineAsync();
         public Task<List<T>> GetEntitiesDataWithConditionAsync(Expression<Func<T, bool>> condition);
         public Task<bool> CheckExistencData(Expression<Func<T, bool>> condition, CancellationToken ct = default);
     }

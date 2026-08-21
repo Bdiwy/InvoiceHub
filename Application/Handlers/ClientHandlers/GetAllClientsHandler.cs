@@ -9,7 +9,7 @@ public class GetAllClientsHandler(ICommonQueries<Client> clientRepo) : IRequestH
 {
     public async Task<IEnumerable<ClientsResponseDto>> Handle(GetAllClientsRequest request, CancellationToken cancellationToken)
     {
-        var clients = await clientRepo.GetAllEntitiesAsync();
+        var clients = await clientRepo.GetAllByQueryEngineAsync();
         return clients.Select(client => new ClientsResponseDto(
             client.Id,
             client.CompanyName,
