@@ -1,6 +1,6 @@
-﻿
-using Domain.Interfaces;
+﻿using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Queries.QueryBuilderEngine;
 
@@ -9,20 +9,37 @@ public class QueryEngineCore<TEntity> : IRegisterAsSelf
     where TEntity : class
 {
     private readonly ApplicationDbContext _context;
-    private readonly QueryOptions options;
+    private readonly QueryOptions _options;
 
     public QueryEngineCore(ApplicationDbContext context, QueryOptions options)
-    {
+    {  
         _context = context;
-        this.options = options; // populated by middleware
+        _options = options;
     }
 
     public async Task<List<TEntity>> Handle()
     {
-        var x = options.Pagination.Size ;
         IQueryable<TEntity> query = _context.Set<TEntity>();
-        var result = await _context.Set<TEntity>().ToListAsync();
-        return result;
+        query = query
+                     .ApplyValidationConfigration(_options)
+                     .ApplyFiltering(_options)
+                     .ApplySearch(_options)
+                     .ApplySorting(_options);
+                            
+
+        var totalCount = await query.CountAsync();
+
+        var totalPages = (int)Math.Ceiling(
+            totalCount / (double)_options.Pagination.PageSize
+            );
+
+        _options.Pagination.TotalCount = totalCount;
+        _options.Pagination.TotalNumberOfPages = totalPages;
+
+        var finalQuery = query.ApplyPagination(_options);
+
+        return await finalQuery.ToListAsync();
     }
+
 
 }
