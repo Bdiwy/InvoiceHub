@@ -13,7 +13,7 @@ public record AuthResponseDto(
 {
 
 // Factory method for success
-public static AuthResponseDto Success(string token,string refreshToken, User user , string message = null) => new(
+public static AuthResponseDto Success(string token, string refreshToken, User user, string? message = null) => new(
     IsSuccess: true,
     Message: message,
     Token: token,
