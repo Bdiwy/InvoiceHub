@@ -159,8 +159,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseDefaultFiles();
 app.UseAuthentication();
-app.TokenValidationMiddleware();
 app.UseExceptionCatcherMiddleware();
+app.TokenValidationMiddleware();
 app.UseQueryEngine();
 app.UseAuthorization();
 app.MapControllers();

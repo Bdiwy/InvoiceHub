@@ -1,4 +1,5 @@
 using Api.Middlewares;
+using Application.Exceptions;
 using Domain.Entities;
 using InvoiceHub.Application.Requests.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -18,31 +19,19 @@ public class TokenValidationMiddleware(RequestDelegate next)
         }
 
         if (context.User.Identity?.IsAuthenticated != true)
-        {
-            await WriteUnauthorizedAsync(context, "Unauthorized.");
-            return;
-        }
+            throw new UnauthorizedException();
 
         var token = ExtractBearerToken(context);
         if (string.IsNullOrWhiteSpace(token))
-        {
-            await WriteUnauthorizedAsync(context, "Missing bearer token.");
-            return;
-        }
+            throw new UnauthorizedException("Missing bearer token.");
 
         var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!Guid.TryParse(userIdClaim, out var userId))
-        {
-            await WriteUnauthorizedAsync(context, "Invalid token subject.");
-            return;
-        }
+            throw new UnauthorizedException("Invalid token subject.");
 
         var deviceType = ResolveDeviceType(context.Request.Headers["X-Device-Type"].ToString());
         if (deviceType is null)
-        {
-            await WriteUnauthorizedAsync(context, "Unsupported device type.");
-            return;
-        }
+            throw new UnauthorizedException("Unsupported device type.");
 
         var storedToken = await dbContext.Set<AccessAndRefreshToken>()
             .AsNoTracking()
@@ -51,24 +40,12 @@ public class TokenValidationMiddleware(RequestDelegate next)
                 t.UserId == userId &&
                 t.DeviceType == deviceType.Value);
 
-        if (storedToken is null)
-        {
-            await WriteUnauthorizedAsync(context, "Token not found or already rotated.");
-            return;
-        }
-
-        if (storedToken.IsRevoked)
-        {
-            await WriteUnauthorizedAsync(context, "Token has been revoked.");
-            return;
-        }
-
-        if (storedToken.TokenExpiresAt <= DateTime.UtcNow)
-        {
-            await WriteUnauthorizedAsync(context, "Token has expired.");
-            return;
-        }
-
+        if (
+            storedToken is null || 
+            storedToken.IsRevoked || 
+            storedToken.TokenExpiresAt <= DateTime.UtcNow)
+            throw new UnauthorizedException();
+        
         await next(context);
     }
 
@@ -109,14 +86,6 @@ public class TokenValidationMiddleware(RequestDelegate next)
 
         return Enum.TryParse<DeviceType>(value, true, out var parsed) ? parsed : null;
     }
-
-    private static async Task WriteUnauthorizedAsync(HttpContext context, string message)
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        await context.Response.WriteAsJsonAsync(AuthResponseDto.Failure(message));
-    }
-
-
 }
 
 public static class TokenValidationHandlerMiddleware

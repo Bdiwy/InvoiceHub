@@ -61,7 +61,7 @@ public class QueryEngineOptionsMiddleware(RequestDelegate _next)
         queryOptions.Pagination = new PaginationOptions
         {
             Page = page,
-            Size = size
+            PageSize = size
         };
     }
 }
