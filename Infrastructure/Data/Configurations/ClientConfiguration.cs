@@ -2,23 +2,16 @@ namespace Infrastructure.Data.Configurations;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-public class ClientConfiguration : IEntityTypeConfiguration<Client>
+public class ClientConfiguration : BaseConfig<Client>, IEntityTypeConfiguration<Client>
 {
     public void Configure(EntityTypeBuilder<Client> builder)
     {
-        builder.ToTable("Clients");
-
-        builder.HasKey(c => c.Id);
-
-        builder.HasOne(c => c.AddedBy)
-            .WithMany(u => u.Clients)
-            .HasForeignKey(c => c.AddedById);
+        ConfigureBase(builder);
 
         builder.HasMany(c => c.Invoices)
             .WithOne(i => i.Client)
             .HasForeignKey(i => i.ClientId)
             .OnDelete(DeleteBehavior.Cascade);
-        
 
         builder.Property(i=> i.CompanyName).HasMaxLength(300);
         builder.Property(i=> i.ContactEmail).HasMaxLength(300);
@@ -31,7 +24,5 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
         builder.HasIndex(i=> i.TradeLicenseNumber).IsUnique();
         builder.HasIndex(i=> i.ContactPhone).IsUnique();
 
-        builder.HasIndex(i => new { i.TenantId, i.AddedById })
-            .HasDatabaseName("IX_Clients_Tenant_AddedBy");        
     }
 }

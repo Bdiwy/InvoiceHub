@@ -2,15 +2,11 @@ namespace Infrastructure.Data.Configurations;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
+public class InvoiceConfiguration : BaseConfig<Invoice>, IEntityTypeConfiguration<Invoice>
 {
     public void Configure(EntityTypeBuilder<Invoice> builder)
     {
-        builder.ToTable("Invoices");
-        builder.HasKey(i => i.Id);
-        builder.HasOne(i => i.AddedBy)
-            .WithMany(u => u.Invoices)
-            .HasForeignKey(i => i.AddedById);
+        ConfigureBase(builder);
 
         builder.HasOne(i => i.Client)
             .WithMany(c => c.Invoices)
@@ -25,16 +21,14 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .HasConversion<string>()
             .HasMaxLength(20);
 
+        builder.Property(i=> i.InvoiceNumber).HasMaxLength(300);
         builder.Property(i=> i.Title).HasMaxLength(300);
         builder.Property(i=> i.Description).HasMaxLength(600);
 
-        builder.HasIndex(i => new { i.TenantId, i.AddedById })
-            .HasDatabaseName("IX_Invoices_Tenant_AddedBy");
+        builder.HasIndex(i => new { i.TenantId, i.InvoiceNumber })
+            .HasDatabaseName("IX_Invoices_Tenant_InvoiceNumber");
         
         builder.HasIndex(i => new { i.TenantId, i.PaymentMethod })
             .HasDatabaseName("IX_Invoices_Tenant_PaymentMethod");
-
-        builder.HasIndex(i => new { i.TenantId, i.Status })
-            .HasDatabaseName("IX_Invoices_Tenant_Status");
     }
 }

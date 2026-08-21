@@ -13,6 +13,7 @@ public static class QueryConfigurationRegistry
     static QueryConfigurationRegistry()
     {
         _configs[typeof(Client)] = new ClientQueryEngineConfiguration();
+        _configs[typeof(Invoice)] = new InvoiceQueryEngineConfiguration();
         // register more entities here
     }
 
