@@ -1,10 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Domain.QueryEngineConfigs.core;
 using System.Linq.Expressions;
 
 namespace Infrastructure.Queries.QueryBuilderEngine;
 
 public static class QueryableEngineCoreExtensions
 {
+    /// <summary>
+    /// Applies skip/take pagination to the query based on <see cref="QueryOptions.Pagination"/>.
+    /// </summary>
     public static IQueryable<TEntity> ApplyPagination<TEntity>(
         this IQueryable<TEntity> query,
         QueryOptions options
@@ -19,6 +22,9 @@ public static class QueryableEngineCoreExtensions
         return query.Skip(skip).Take(take);
     }
 
+    /// <summary>
+    /// Applies equality filters to the query for each entry in <see cref="QueryOptions.Filters"/>.
+    /// </summary>
     public static IQueryable<TEntity> ApplyFiltering<TEntity>(
         this IQueryable<TEntity> query,
         QueryOptions options)
@@ -29,7 +35,9 @@ public static class QueryableEngineCoreExtensions
         {
             var parameter = Expression.Parameter(typeof(TEntity), "x");
             var property = Expression.PropertyOrField(parameter, filter.Key);
-            var constant = Expression.Constant(filter.Value);
+            var targetType = Nullable.GetUnderlyingType(property.Type) ?? property.Type;
+            var convertedValue = Convert.ChangeType(filter.Value, targetType);
+            var constant = Expression.Constant(convertedValue, property.Type);
             var comparison = Expression.Equal(property, constant);
             var lambda = Expression.Lambda<Func<TEntity, bool>>(comparison, parameter);
             query = query.Where(lambda);
@@ -37,32 +45,44 @@ public static class QueryableEngineCoreExtensions
         return query;
     }
 
+    /// <summary>
+    /// Applies a case-sensitive contains search across the entity's configured search fields.
+    /// </summary>
     public static IQueryable<TEntity> ApplySearch<TEntity>(
-        this IQueryable<TEntity> query,
-        QueryOptions options)
+    this IQueryable<TEntity> query,
+    QueryOptions options)
     {
         if (string.IsNullOrWhiteSpace(options.Search))
             return query;
+
+        var config = QueryConfigurationRegistry.Get<TEntity>();
         var parameter = Expression.Parameter(typeof(TEntity), "x");
-        var properties = typeof(TEntity).GetProperties()
-            .Where(p => p.PropertyType == typeof(string));
+        var containsMethod = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
+        var searchValue = Expression.Constant(options.Search, typeof(string));
+        var nullConstant = Expression.Constant(null, typeof(string));
+
         Expression? searchExpression = null;
-        foreach (var property in properties)
+
+        foreach (var propertyName in config.SearchFields)
         {
-            var propertyAccess = Expression.Property(parameter, property);
-            var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-            var searchValue = Expression.Constant(options.Search, typeof(string));
+            var propertyAccess = Expression.Property(parameter, propertyName);
+
+            var isNotNull = Expression.NotEqual(propertyAccess, nullConstant);
             var containsCall = Expression.Call(propertyAccess, containsMethod!, searchValue);
+            var safeContainsCall = Expression.AndAlso(isNotNull, containsCall);
+
             searchExpression = searchExpression == null
-                ? containsCall
-                : Expression.OrElse(searchExpression, containsCall);
+                ? safeContainsCall
+                : Expression.OrElse(searchExpression, safeContainsCall);
         }
-        if (searchExpression == null)
-            return query;
-        var lambda = Expression.Lambda<Func<TEntity, bool>>(searchExpression, parameter);
+
+        var lambda = Expression.Lambda<Func<TEntity, bool>>(searchExpression!, parameter);
         return query.Where(lambda);
     }
 
+    /// <summary>
+    /// Applies ascending or descending ordering using <see cref="QueryOptions.Sort"/>.
+    /// </summary>
     public static IQueryable<TEntity> ApplySorting<TEntity>(
         this IQueryable<TEntity> query,
         QueryOptions options)

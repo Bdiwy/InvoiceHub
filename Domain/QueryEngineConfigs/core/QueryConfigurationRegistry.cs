@@ -17,6 +17,9 @@ public static class QueryConfigurationRegistry
         // register more entities here
     }
 
+    /// <summary>
+    /// Returns the query configuration for <typeparamref name="TEntity"/> after applying its registered configuration.
+    /// </summary>
     public static QueryConfig<TEntity> Get<TEntity>()
     {
         var configuration = (QueryConfiguration<TEntity>)_configs[typeof(TEntity)];

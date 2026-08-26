@@ -1,12 +1,12 @@
 ﻿using Application.Exceptions;
-using Domain.Entities;
-using Domain.QueryEngineConfigs;
 using Domain.QueryEngineConfigs.core;
-using System.Linq.Expressions;
 namespace Infrastructure.Queries.QueryBuilderEngine;
 
 public static class QueryableEngineValidationExtensions
 {
+    /// <summary>
+    /// Validates that search, filter, and sort options are allowed by the entity's query configuration.
+    /// </summary>
     public static IQueryable<TEntity> ApplyValidationConfigration<TEntity>(
         this IQueryable<TEntity> query,
         QueryOptions options
