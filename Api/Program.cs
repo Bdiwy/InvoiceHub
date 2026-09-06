@@ -1,5 +1,7 @@
 using Api.Middlewares;
 using Application;
+using Application.Configs;
+using Application.Interfaces;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Infrastructure;
@@ -119,6 +121,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.Configure<SystemUserSettings>(
+    builder.Configuration.GetSection(SystemUserSettings.SectionName));
 
 builder.Services.AddResponseCompression();
 
@@ -129,10 +133,9 @@ app.UseResponseCompression();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var seeder = new DatabaseSeeder(context);
+    await context.Database.MigrateAsync();
     
-    // Run the migration and seeding
-    await context.Database.MigrateAsync(); 
+    var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
     await seeder.SeedAsync();
 }
 
