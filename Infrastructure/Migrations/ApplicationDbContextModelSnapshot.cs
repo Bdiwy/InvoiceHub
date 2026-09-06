@@ -72,9 +72,6 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("AddedById")
-                        .HasColumnType("char(36)");
-
                     b.Property<string>("CompanyName")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -103,6 +100,15 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("char(36)");
 
@@ -114,9 +120,10 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.HasKey("Id");
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("char(36)");
 
-                    b.HasIndex("AddedById");
+                    b.HasKey("Id");
 
                     b.HasIndex("ContactEmail")
                         .IsUnique();
@@ -124,13 +131,20 @@ namespace Infrastructure.Migrations
                     b.HasIndex("ContactPhone")
                         .IsUnique();
 
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
                     b.HasIndex("TradeLicenseNumber")
                         .IsUnique();
 
-                    b.HasIndex("TenantId", "AddedById")
-                        .HasDatabaseName("IX_Clients_Tenant_AddedBy");
+                    b.HasIndex("UpdatedById");
 
-                    b.ToTable("Clients", (string)null);
+                    b.HasIndex("TenantId", "CreatedById");
+
+                    b.HasIndex("TenantId", "UpdatedById");
+
+                    b.ToTable("Clients");
                 });
 
             modelBuilder.Entity("Domain.Entities.Invoice", b =>
@@ -139,14 +153,20 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("AddedById")
-                        .HasColumnType("char(36)");
-
                     b.Property<Guid>("ClientId")
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -158,6 +178,11 @@ namespace Infrastructure.Migrations
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("InvoiceNumber")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
 
                     b.Property<DateTime>("NotifiedAt")
                         .HasColumnType("datetime(6)");
@@ -192,22 +217,30 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.HasKey("Id");
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("char(36)");
 
-                    b.HasIndex("AddedById");
+                    b.HasKey("Id");
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("TenantId", "AddedById")
-                        .HasDatabaseName("IX_Invoices_Tenant_AddedBy");
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("TenantId", "CreatedById");
+
+                    b.HasIndex("TenantId", "InvoiceNumber")
+                        .HasDatabaseName("IX_Invoices_Tenant_InvoiceNumber");
 
                     b.HasIndex("TenantId", "PaymentMethod")
                         .HasDatabaseName("IX_Invoices_Tenant_PaymentMethod");
 
-                    b.HasIndex("TenantId", "Status")
-                        .HasDatabaseName("IX_Invoices_Tenant_Status");
+                    b.HasIndex("TenantId", "UpdatedById");
 
-                    b.ToTable("Invoices", (string)null);
+                    b.ToTable("Invoice");
                 });
 
             modelBuilder.Entity("Domain.Entities.Permission", b =>
@@ -243,10 +276,19 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("char(36)");
@@ -254,7 +296,24 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("char(36)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("TenantId", "CreatedById");
+
+                    b.HasIndex("TenantId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Role_Tenant_Name");
+
+                    b.HasIndex("TenantId", "UpdatedById");
 
                     b.ToTable("Roles");
                 });
@@ -289,6 +348,15 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -300,13 +368,24 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("char(36)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Name", "TenantId")
-                        .IsUnique();
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("TenantId", "CreatedById");
 
                     b.HasIndex("TenantId", "Name")
+                        .IsUnique()
                         .HasDatabaseName("IX_Team_Tenant_Name");
+
+                    b.HasIndex("TenantId", "UpdatedById");
 
                     b.ToTable("Teams");
                 });
@@ -338,7 +417,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("varchar(300)");
 
-                    b.Property<Guid>("RoleId")
+                    b.Property<Guid?>("RoleId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid?>("TeamId")
@@ -386,32 +465,85 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Client", b =>
                 {
-                    b.HasOne("Domain.Entities.User", "AddedBy")
-                        .WithMany("Clients")
-                        .HasForeignKey("AddedById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("Domain.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("AddedBy");
+                    b.HasOne("Domain.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Domain.Entities.Invoice", b =>
                 {
-                    b.HasOne("Domain.Entities.User", "AddedBy")
-                        .WithMany("Invoices")
-                        .HasForeignKey("AddedById")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Domain.Entities.Client", "Client")
                         .WithMany("Invoices")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AddedBy");
+                    b.HasOne("Domain.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Client");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("UpdatedBy");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Role", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("Domain.Entities.RolePermission", b =>
@@ -433,13 +565,37 @@ namespace Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Team", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("UpdatedBy");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.HasOne("Domain.Entities.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Domain.Entities.Team", "Team")
                         .WithMany("Users")
@@ -475,10 +631,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
-                    b.Navigation("Clients");
-
-                    b.Navigation("Invoices");
-
                     b.Navigation("Tokens");
                 });
 #pragma warning restore 612, 618
