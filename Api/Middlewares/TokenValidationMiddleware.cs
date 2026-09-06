@@ -58,7 +58,8 @@ public class TokenValidationMiddleware(RequestDelegate next)
             return false;
 
         var route = routeEndpoint.RoutePattern.RawText;
-        if (string.Equals(route, "api/auth/login", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(route, "api/auth/login", StringComparison.OrdinalIgnoreCase)||
+            string.Equals(route, "api/auth/register", StringComparison.OrdinalIgnoreCase))
             return false;
 
         var allowsAnonymous = endpoint.Metadata.GetMetadata<IAllowAnonymous>() is not null;
