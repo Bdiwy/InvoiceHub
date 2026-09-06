@@ -14,7 +14,7 @@ public sealed class ClientQueryEngineConfiguration
         config.Search(x => x.ContactAddress);
         config.Search(x => x.TradeLicenseNumber);
 
-        config.Filter(x => x.AddedBy);
+        config.Filter(x => x.CreatedBy);
         config.Filter(x => x.ContactName);
         config.Filter(x => x.ContactPhone);
 

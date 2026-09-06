@@ -1,3 +1,4 @@
+using Application.Exceptions;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Interfaces;
@@ -29,10 +30,10 @@ public class ApplicationDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-        ApplyTenantQueryFilters(modelBuilder);
+        ApplyQueryFilters(modelBuilder);
     }
 
-    private void ApplyTenantQueryFilters(ModelBuilder modelBuilder)
+    private void ApplyQueryFilters(ModelBuilder modelBuilder)
     {
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
@@ -41,11 +42,24 @@ public class ApplicationDbContext : DbContext
                 continue;
             }
 
+            //Apply Tenant Query Filters
             var method = typeof(ApplicationDbContext)
                 .GetMethod(nameof(SetTenantFilter), BindingFlags.NonPublic | BindingFlags.Instance)!
                 .MakeGenericMethod(entityType.ClrType);
 
             method.Invoke(this, [modelBuilder]);
+
+            if (!typeof(IAuditableEntity).IsAssignableFrom(entityType.ClrType))
+            {
+                continue;
+            }
+
+            //Apply Deleted Query Filters
+            var deletedMethod = typeof(ApplicationDbContext)
+                .GetMethod(nameof(SetDeletedFilter), BindingFlags.NonPublic | BindingFlags.Instance)!
+                .MakeGenericMethod(entityType.ClrType);
+
+            deletedMethod.Invoke(this, [modelBuilder]);
         }
     }
 
@@ -57,40 +71,46 @@ public class ApplicationDbContext : DbContext
                 CurrentTenantId == null || entity.TenantId == CurrentTenantId);
     }
 
+    private void SetDeletedFilter<TEntity>(ModelBuilder modelBuilder)
+        where TEntity : class, IAuditableEntity
+    {
+        modelBuilder.Entity<TEntity>()
+            .HasQueryFilter(entity => entity.DeletedAt == null);
+    }
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entries = ChangeTracker.Entries();
 
         foreach (var entry in entries)
         {
-            if (entry.Entity is IAuditableEntity auditable)
+            if (entry.Entity is not User && entry.Entity is IAuditableEntity auditable)
             {
                 if (entry.State == EntityState.Added)
                 {
                     auditable.CreatedAt = DateTime.UtcNow;
-
-                    if (_currentUser.IsAuthenticated)
-                    {
-                        auditable.AddedById = _currentUser.UserId;
-                    }
+                    auditable.CreatedById = _currentUser.UserId;
                 }
+
                 else if (entry.State == EntityState.Modified)
                 {
                     auditable.UpdatedAt = DateTime.UtcNow;
+                    auditable.UpdatedById = _currentUser.UserId;
+
+                }
+                else if(entry.State == EntityState.Deleted)
+                {
+                    auditable.DeletedAt = DateTime.UtcNow;
+                    auditable.DeletedById = _currentUser.UserId;
+
+                    entry.State = EntityState.Modified;
+
                 }
             }
 
-            if (entry.Entity is ITenantEntity tenant && entry.State == EntityState.Added)
-            {
-                if (_currentUser.IsAuthenticated)
-                {
-                    tenant.TenantId = _currentUser.TenantId;
-                }
-                else if (tenant.TenantId == Guid.Empty)
-                {
-                    throw new InvalidOperationException("A TenantId must be provided for new entities.");
-                }
-            }
+            if (entry.Entity is ITenantEntity tenant && entry.State == EntityState.Added && entry.Entity is not User)
+                tenant.TenantId = _currentUser.TenantId;
+
         }
 
         return await base.SaveChangesAsync(cancellationToken);

@@ -10,15 +10,31 @@ public abstract class BaseConfig<TEntity>
     {
         builder.HasKey(e => e.Id);
 
-        builder.HasOne(e => e.AddedBy)
+        builder.HasOne(e => e.CreatedBy)
             .WithMany()
-            .HasForeignKey(e => e.AddedById)
+            .HasForeignKey(e => e.CreatedById)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.UpdatedBy)
+           .WithMany()
+           .HasForeignKey(e => e.UpdatedById)
+           .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.DeletedBy)
+           .WithMany()
+           .HasForeignKey(e => e.DeletedById)
+           .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(e => new
         {
             e.TenantId,
-            e.AddedById
+            e.CreatedById
+        });
+
+        builder.HasIndex(e => new
+        {
+            e.TenantId,
+            e.UpdatedById
         });
     }
 }

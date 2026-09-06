@@ -1,29 +1,28 @@
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Infrastructure.Data.Configurations
 {
-    public class TeamConfiguration : IEntityTypeConfiguration<Team>
+    public class TeamConfiguration : BaseConfig<Team>,IEntityTypeConfiguration<Team> 
     {
         public void Configure(EntityTypeBuilder<Team> builder)
         {
-            builder.HasKey(t => t.Id);
+            ConfigureBase(builder);
 
             builder.Property(t => t.Name)
                     .IsRequired()
-                    .HasMaxLength(100);
-
-            builder.HasIndex(t => new { t.Name, t.TenantId }).IsUnique();
+                    .HasMaxLength(300);
 
             builder.HasMany(t => t.Users)
                     .WithOne(u => u.Team)
                     .HasForeignKey(u => u.TeamId)
                     .OnDelete(DeleteBehavior.SetNull); 
             
-            builder.Property(u => u.Name).HasMaxLength(300);
             builder.HasIndex(i => new { i.TenantId, i.Name })
-                .HasDatabaseName("IX_Team_Tenant_Name");
+                    .IsUnique()
+                    .HasDatabaseName("IX_Team_Tenant_Name");
             }
     }
 }
