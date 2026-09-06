@@ -31,9 +31,8 @@ namespace Domain.Entities
         [Required, Phone, StringLength(20)]
         public required string PhoneNumber { get; set; }
 
-        [Required]
-        public Guid RoleId { get; set; }
-        public virtual required Role Role { get; set; }
+        public Guid? RoleId { get; set; }
+        public virtual Role? Role { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
     }
