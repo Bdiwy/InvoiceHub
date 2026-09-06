@@ -9,4 +9,5 @@ public interface ILogedInUserData
     string? UserEmail { get; }
     string? UserName { get; }
     string? UserRole { get; }
+    void UseSystemUser(Guid userId = default, Guid tenantId = default);
 }
