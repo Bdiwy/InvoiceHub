@@ -108,8 +108,13 @@ public class ApplicationDbContext : DbContext
                 }
             }
 
-            if (entry.Entity is ITenantEntity tenant && entry.State == EntityState.Added && entry.Entity is not User)
-                tenant.TenantId = _currentUser.TenantId;
+            if (entry.Entity is ITenantEntity tenant && entry.State == EntityState.Added && entry.Entity is not User and not AccessAndRefreshToken)
+            {    
+                 if (tenant.TenantId == Guid.Empty && _currentUser.TenantId != Guid.Empty)
+                 {
+                     tenant.TenantId = _currentUser.TenantId;
+                 }
+             }
 
         }
 

@@ -14,9 +14,9 @@ public class AuthService(
     IUserAuthQueries userAuthQueries,
     ICommonQueries<User> userRepo,
     ICommonQueries<AccessAndRefreshToken> tokenQueries,
+    ICommonQueries<Role> roleQueries,
     ICommonCommands<AccessAndRefreshToken> tokenRepo,
     ICommonCommands<User> userCommandsRepo,
-    ICommonCommands<Role> roleCommandsRepo,
     IConfiguration _config) : IScopedService , IAuthService
 {
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request, string? apiKey, string deviceType, CancellationToken ct)
@@ -40,16 +40,23 @@ public class AuthService(
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request, CancellationToken ct = default)
     {
-        User? existingUser = await userRepo.FetchFirstAsync(u => u.Email == request.Email, ct);
-        
+        var existingUser = await userRepo.FetchFirstAsync(u => u.Email == request.Email || u.Username == request.Username || u.PhoneNumber == request.PhoneNumber, ct);
         if (existingUser is not null)
-            throw new AppValidationException("Email already in use.");
-        
-        var newTenantId = Guid.NewGuid();
-        var ownerRole = CreateNewOwnerRole(newTenantId);
-        await roleCommandsRepo.SaveMeAsync(ownerRole, ct);
+        {
+            if (string.Equals(existingUser.Email, request.Email, StringComparison.OrdinalIgnoreCase))
+                throw new AppValidationException("Email already in use");
 
-        var newUser = CreateUserEntity(request.Username, request.Email, true, newTenantId, request.PhoneNumber, ownerRole.Id , ownerRole );
+            if (string.Equals(existingUser.Username, request.Username, StringComparison.OrdinalIgnoreCase))
+                throw new AppValidationException("Username already in use");
+
+            if (existingUser.PhoneNumber == request.PhoneNumber)
+                throw new AppValidationException("PhoneNumber is already registered");
+        }
+
+        var newTenantId = Guid.NewGuid();
+        var ownerRole = await roleQueries.FetchFirstAsync(e=> e.Name  == Role.COFOUNDERS.OWNER.ToString());
+
+        var newUser = CreateUserEntity(request.Username, request.Email, true, newTenantId, request.PhoneNumber, ownerRole!.Id);
         newUser.Password = new PasswordHasher<User>().HashPassword(newUser, request.Password);
 
         await userCommandsRepo.SaveMeAsync(newUser, ct);
@@ -174,7 +181,6 @@ public class AuthService(
             Guid TenantId,
             string PhoneNumber,
             Guid RoleId,
-            Role Role,
             string Password = "" 
         )
     {
@@ -186,17 +192,9 @@ public class AuthService(
             TenantId = TenantId,
             PhoneNumber = PhoneNumber,
             RoleId = RoleId,
-            Role = Role,
             Password = Password
         };
     }
-
-    private static Role CreateNewOwnerRole(Guid TenantId)
-    =>new Role
-    {
-        Name = Role.COFOUNDERS.OWNER.ToString(),
-        TenantId = TenantId
-    };
 }
 
 public static class AuthServiceExtensions
