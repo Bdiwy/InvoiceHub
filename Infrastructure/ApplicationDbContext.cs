@@ -43,11 +43,11 @@ public class ApplicationDbContext : DbContext
             }
 
             //Apply Tenant Query Filters
-            var method = typeof(ApplicationDbContext)
-                .GetMethod(nameof(SetTenantFilter), BindingFlags.NonPublic | BindingFlags.Instance)!
-                .MakeGenericMethod(entityType.ClrType);
+            //var method = typeof(ApplicationDbContext)
+            //    .GetMethod(nameof(SetTenantFilter), BindingFlags.NonPublic | BindingFlags.Instance)!
+            //    .MakeGenericMethod(entityType.ClrType);
 
-            method.Invoke(this, [modelBuilder]);
+            //method.Invoke(this, [modelBuilder]);
 
             if (!typeof(IAuditableEntity).IsAssignableFrom(entityType.ClrType))
             {

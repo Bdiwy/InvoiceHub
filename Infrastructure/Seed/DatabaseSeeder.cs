@@ -75,22 +75,29 @@ public class DatabaseSeeder(ApplicationDbContext context, ILogedInUserData curre
 
     private async Task SeedClients()
     {
-        currentUser.UseSystemUser();
+        await currentUser.UseSystemUser();
+
         var existingCount = await context.Clients
             .CountAsync(c => c.TenantId == currentUser.TenantId);
 
         var clients = new List<Client>();
-        var random = new Random();
+
         for (int i = existingCount + 1; i <= 20000; i++)
         {
+            var uniqueId = i.ToString("D10");
+
             clients.Add(new Client
             {
-                CompanyName = $"Company {i}",
-                ContactName = $"Contact Person {random.Next(1000, 99999)}",
-                ContactEmail = $"contact{random.Next(1000, 99999)}@company.com",
-                ContactPhone = $"+20 100 000 {i:D4}",
-                ContactAddress = $"Business Address {i}, Cairo, Egypt",
-                TradeLicenseNumber = $"TL-2026-{i:D4}"
+                CompanyName = $"Company {uniqueId}",
+                ContactName = $"Contact Person {uniqueId}",
+
+                ContactEmail = $"contact{uniqueId}@company{i}.com",
+
+                ContactPhone = $"+2010{uniqueId}",
+
+                ContactAddress = $"Business Address {uniqueId}, Cairo, Egypt",
+
+                TradeLicenseNumber = $"TL-2026-{uniqueId}"
             });
         }
 
@@ -100,5 +107,6 @@ public class DatabaseSeeder(ApplicationDbContext context, ILogedInUserData curre
         await context.Clients.AddRangeAsync(clients);
         await context.SaveChangesAsync();
     }
+
 
 }

@@ -19,30 +19,52 @@ public class LogedInUserData(
     private Guid? _systemUserId;
     private Guid? _systemTenantId;
 
-    private ClaimsPrincipal? AuthenticatedUser =>
-        _httpContextAccessor.HttpContext?.User;
+    private ClaimsPrincipal? AuthenticatedUser =>  _httpContextAccessor.HttpContext?.User;
 
-    public bool IsAuthenticated =>
-        _systemUserId.HasValue ||
-        AuthenticatedUser?.Identity?.IsAuthenticated == true;
+    public bool IsAuthenticated
+    {
+        get
+        {
+            return _systemUserId.HasValue ||
+            AuthenticatedUser?.Identity?.IsAuthenticated == true;
 
-    public Guid UserId =>
-        _systemUserId ??
-        (IsAuthenticated
-            ? Guid.Parse(
-                AuthenticatedUser!
-                    .FindFirst(ClaimTypes.NameIdentifier)!.Value)
-            : throw new UnauthorizedAccessException(
-                "User is not authenticated"));
+        }
+    }
 
-    public Guid TenantId =>
-        _systemTenantId ??
-        (IsAuthenticated
-            ? Guid.Parse(
-                AuthenticatedUser!
-                    .FindFirst("tenantId")!.Value)
-            : throw new InvalidOperationException(
-                "This user didn't belong to any tenant."));
+    public Guid UserId
+    {
+        get
+        {
+            if (_systemUserId.HasValue)
+                return _systemUserId.Value;
+
+            var userIdClaim = AuthenticatedUser?
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (Guid.TryParse(userIdClaim, out var userId))
+                return userId;
+
+            throw new UnauthorizedAccessException(
+                "User is not authenticated.");
+        }
+    }
+
+    public Guid TenantId
+    {
+        get
+        {
+            if (_systemTenantId.HasValue)
+                return _systemTenantId.Value;
+
+            var tenantClaim = AuthenticatedUser?.FindFirst("tenantId")?.Value;
+
+            if (Guid.TryParse(tenantClaim, out var tenantId))
+                return tenantId;
+
+            throw new InvalidOperationException(
+                "The current user doesn't belong to any tenant.");
+        }
+    }
 
     public bool IsOwner()
     {

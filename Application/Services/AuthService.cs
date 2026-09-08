@@ -84,11 +84,11 @@ public class AuthService(
             ct);
 
         if (storedToken is null || storedToken.IsRevoked || storedToken.IsExpired)
-            return AuthResponseDto.Failure("Invalid or expired refresh token.");
+            return AuthResponseDto.Failure("Invalid or expired refresh token");
 
         var user = await userAuthQueries.GetByIdWithRoleAsync(storedToken.UserId, ct);
         if (user is null)
-            return AuthResponseDto.Failure("User not found.");
+            return AuthResponseDto.Failure("User not found");
 
         await tokenRepo.DeleteThisAsync(t => t.Id == storedToken.Id, ct);
 
@@ -112,7 +112,7 @@ public class AuthService(
     private static DeviceType ParseDeviceType(string deviceType)
     {
         if (!Enum.TryParse(deviceType, true, out DeviceType parsedDeviceType))
-            throw new InternalServerErrorException("Unsupported device type.");
+            throw new InternalServerErrorException("Unsupported device type");
         return parsedDeviceType;
     }
 
@@ -121,7 +121,7 @@ public class AuthService(
     {
         var user = await userAuthQueries.GetByEmailWithRoleAsync(request.Email, ct);
         if (user is null)
-            throw new AppValidationException("Invalid email or password.");
+            throw new AppValidationException("Invalid email or password");
 
         return user.VerifyPassword(request.Password) ? user : null;
     }
@@ -135,7 +135,7 @@ public class AuthService(
         var validKey = _config["ApiSettings:MobileApiKey"];
         if (string.IsNullOrEmpty(apiKey) || apiKey != validKey)
         {
-            throw new InternalServerErrorException("Invalid mobile security key.");
+            throw new InternalServerErrorException("Invalid mobile security key");
         }
     }
 

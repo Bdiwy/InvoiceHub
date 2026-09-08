@@ -55,7 +55,7 @@ public class AuthController(IMediator mediator)  : ControllerBase
 
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(userIdClaim, out var userId))
-            return Unauthorized(AuthResponseDto.Failure("Invalid token subject."));
+            return Unauthorized(AuthResponseDto.Failure("Invalid token subject"));
 
         var result = await mediator.Send(new LogoutCommand(userId, apiKey, deviceType), ct);
         return Ok(result);

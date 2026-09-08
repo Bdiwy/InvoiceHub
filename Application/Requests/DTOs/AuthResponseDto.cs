@@ -26,7 +26,7 @@ public static AuthResponseDto Success(string token, string refreshToken, User us
 
 public static AuthResponseDto SuccessLogin(string token,string refreshToken, User user) => new(
     IsSuccess: true,
-    Message: "Login successful.",
+    Message: "Login successful",
     Token: token,
     Username: user.Username,
     Email: user.Email,
@@ -45,12 +45,12 @@ public static AuthResponseDto Failure(string message) => new(
 // register method for success 
 public static AuthResponseDto SuccessRegister() => new(
     IsSuccess: true,
-    Message: "Registration successful."
+    Message: "Registration successful"
 );
 
 public static AuthResponseDto SuccessLogout() => new(
     IsSuccess: true,
-    Message: "Logout successful."
+    Message: "Logout successful"
 );
 
 }

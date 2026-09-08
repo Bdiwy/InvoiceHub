@@ -10,4 +10,6 @@ public interface ILogedInUserData
     string? UserName { get; }
     string? UserRole { get; }
     void UseSystemUser(Guid userId = default, Guid tenantId = default);
+    Task UseSystemUser(Guid tenantId = default);
+    Task UseSystemUser();
 }
