@@ -120,10 +120,11 @@ public class AuthService(
     private async Task<User?> GetAndValidateUserCredentialsAsync(LoginRequestDto request, CancellationToken ct)
     {
         var user = await userAuthQueries.GetByEmailWithRoleAsync(request.Email, ct);
+        user = user.VerifyPassword(request.Password) ? user : null;
         if (user is null)
             throw new AppValidationException("Invalid email or password");
-
-        return user.VerifyPassword(request.Password) ? user : null;
+        
+        return user;
     }
 
     private void ValidateMobileApiKey(DeviceType deviceType, string? apiKey)
