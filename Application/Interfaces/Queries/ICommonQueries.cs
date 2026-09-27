@@ -1,3 +1,4 @@
+using Domain.Entites;
 using System.Linq.Expressions;
 
 namespace Application.Interfaces.Queries
@@ -7,7 +8,7 @@ namespace Application.Interfaces.Queries
     /// Implementations typically query without change tracking.
     /// </summary>
     /// <typeparam name="T">The entity type to query. Must be a reference type.</typeparam>
-    public interface ICommonQueries<T> where T : class
+    public interface ICommonQueries<T> where T : BaseDomainEntity
     {
         /// <summary>
         /// Retrieves the first entity that satisfies the given predicate.
@@ -18,6 +19,7 @@ namespace Application.Interfaces.Queries
         /// The first matching entity, or <c>null</c> when no entity matches the predicate.
         /// </returns>
         public Task<T?> FetchFirstAsync(Expression<Func<T, bool>> predicate , CancellationToken cancellationToken = default);
+        public Task<T?> GetEntityByIdAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default); 
 
         /// <summary>
         /// Retrieves every entity of type <typeparamref name="T"/> from the data store.

@@ -92,14 +92,14 @@ public class LogedInUserData(
 
     public async Task UseSystemUser(Guid tenantId)
     {
-        var _commonQueries = _serviceProvider.GetRequiredService<ICommonQueries<User>>();
-        var systemUser = await _commonQueries.FetchFirstAsync(p => p.Email == _systemUserOptions.Value.Email);
+        var userRepo = _serviceProvider.GetRequiredService<IUserAuthQueries>();
+        var systemUser = await userRepo.FindThisAsync(p => p.Email == _systemUserOptions.Value.Email);
         UseSystemUser(systemUser!.Id, tenantId);
     }
     public async Task UseSystemUser()
     {
-        var _commonQueries = _serviceProvider.GetRequiredService<ICommonQueries<User>>();
-        var systemUser = await _commonQueries.FetchFirstAsync(p => p.Email == _systemUserOptions.Value.Email);
+        var userRepo = _serviceProvider.GetRequiredService<IUserAuthQueries>();
+        var systemUser = await userRepo.FindThisAsync(p => p.Email == _systemUserOptions.Value.Email);
         UseSystemUser(systemUser!.Id, systemUser.TenantId);
     }
 }

@@ -1,19 +1,20 @@
+using Application.Interfaces.Queries;
+using Domain.Entites;
+using Domain.Interfaces;
+using Infrastructure.Queries.QueryBuilderEngine;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Application.Interfaces.Queries;
-using Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Infrastructure.Queries.QueryBuilderEngine;
 namespace Infrastructure.Queries
 {
     /// <summary>
     /// Provides common query operations for entities of type <typeparamref name="TEntity"/>.
     /// </summary>
     public class CommonQueries<TEntity>(ApplicationDbContext context, QueryEngineCore<TEntity> queryEngine) : ICommonQueries<TEntity>
-    where TEntity : class
+    where TEntity : BaseDomainEntity
     {
         private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
         private readonly QueryEngineCore<TEntity> _queryEngine = queryEngine;
@@ -65,6 +66,16 @@ namespace Infrastructure.Queries
         public async Task<bool> CheckExistencData(Expression<Func<TEntity, bool>> condition, CancellationToken ct)
         {
             return await _dbSet.AsNoTracking().AnyAsync(condition, ct);
+        }
+
+
+        public async Task<TEntity?> GetEntityByIdAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken ct)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .FirstOrDefaultAsync(predicate, ct);
         }
 
     }

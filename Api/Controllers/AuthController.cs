@@ -1,12 +1,13 @@
 
 using InvoiceHub.Application.Requests.DTOs;
-using InvoiceHub.Application.Handlers;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Domain.Entities;
 using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
+using Application.Handlers.AuthHandlers;
+using InvoiceHub.Application.Handlers;
 
 namespace InvoiceHub.Api.Controllers;
 

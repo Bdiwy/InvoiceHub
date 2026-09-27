@@ -12,8 +12,7 @@ namespace Application.Services;
 public class AuthService(
     IJwtTokenGenerator jwtTokenGenerator,
     IUserAuthQueries userAuthQueries,
-    ICommonQueries<User> userRepo,
-    ICommonQueries<AccessAndRefreshToken> tokenQueries,
+    IUserAuthQueries userRepo,
     ICommonQueries<Role> roleQueries,
     ICommonCommands<AccessAndRefreshToken> tokenRepo,
     ICommonCommands<User> userCommandsRepo,
@@ -40,7 +39,7 @@ public class AuthService(
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request, CancellationToken ct = default)
     {
-        var existingUser = await userRepo.FetchFirstAsync(u => u.Email == request.Email || u.Username == request.Username || u.PhoneNumber == request.PhoneNumber, ct);
+        var existingUser = await userRepo.FindThisAsync(u => u.Email == request.Email || u.Username == request.Username || u.PhoneNumber == request.PhoneNumber, ct);
         if (existingUser is not null)
         {
             if (string.Equals(existingUser.Email, request.Email, StringComparison.OrdinalIgnoreCase))
@@ -79,7 +78,7 @@ public class AuthService(
 
         ValidateMobileApiKey(parsedDeviceType, apiKey);
 
-        var storedToken = await tokenQueries.FetchFirstAsync(
+        var storedToken = await userRepo.GetStoredToken(
             t => t.RefreshToken == request.RefreshToken && t.DeviceType == parsedDeviceType,
             ct);
 

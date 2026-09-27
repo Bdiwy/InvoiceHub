@@ -25,6 +25,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Permission> Permissions { get; set; } = null!;
     public DbSet<RolePermission> RolePermissions { get; set; } = null!;
     public DbSet<Team> Teams { get; set; } = null!;
+    public DbSet<AccessAndRefreshToken> AccessAndRefreshTokens { get; set; } = null!;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
