@@ -5,9 +5,11 @@ namespace Domain.Entites;
 
 public class BaseDomainEntity : ITenantEntity , IAuditableEntity
 {
+    [IncludeInResponse]
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid TenantId { get; set; }
 
+    [IncludeInResponse]
     public Guid CreatedById { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     

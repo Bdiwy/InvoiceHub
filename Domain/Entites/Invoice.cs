@@ -5,22 +5,37 @@ namespace Domain.Entities;
 
 public class Invoice : BaseDomainEntity
 {
-    public required string InvoiceNumber { get; init; }
-    public required string Title { get; set; } 
-    public required string Description { get; set; } 
-    public required decimal TotalAmount { get; set; } 
-    public required decimal TaxAmount { get; set; }
-    public required decimal DiscountAmount { get; set; }
-    public required DateTime DueDate { get; set; }
-
-    public required DateTime NotifiedAt { get; set; }
-
-    public required DateTime PaidAt { get; set; }
-
-    public required InvoiceStatus Status { get; set; }
-    public required PaymentMethod PaymentMethod { get; set; } = PaymentMethod.BANK_TRANSFER;
-    public Guid ClientId { get; set; }
-    public virtual required Client Client { get; set; }
+    public Invoice(
+        string invoiceNumber,
+        string title,
+        string description,
+        decimal totalAmount,
+        decimal taxAmount,
+        decimal discountAmount,
+        DateTime dueDate
+    )
+    {
+        InvoiceNumber = invoiceNumber;
+        Title = title;
+        Description = description;
+        TotalAmount = totalAmount;
+        TaxAmount = taxAmount;
+        DiscountAmount = discountAmount;
+        DueDate = dueDate;
+    }
+    [IncludeInResponse] public string InvoiceNumber { get; init; }
+    [IncludeInResponse] public string Title { get; set; } 
+    [IncludeInResponse] public string Description { get; set; } 
+    [IncludeInResponse] public decimal TotalAmount { get; set; } 
+    [IncludeInResponse] public decimal TaxAmount { get; set; }
+    [IncludeInResponse] public decimal DiscountAmount { get; set; }
+    [IncludeInResponse] public DateTime DueDate { get; set; }
+    [IncludeInResponse] public DateTime NotifiedAt { get; set; }
+    [IncludeInResponse] public DateTime PaidAt { get; set; }
+    [IncludeInResponse] public InvoiceStatus Status { get; set; }
+    [IncludeInResponse] public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.BANK_TRANSFER;
+    [IncludeInResponse] public Guid ClientId { get; set; }
+    public Client? Client { get; set; }
 }
 
 
