@@ -4,11 +4,22 @@ namespace Domain.Entities;
 
 public class AccessAndRefreshToken : ITenantEntity
 {
+    private AccessAndRefreshToken(){}
+    public AccessAndRefreshToken(Guid userId,Guid tenantId, DeviceType deviceType, string token, string refreshToken, DateTime tokenExpiry, DateTime refreshTokenExpiry)
+    {
+       TenantId = tenantId;
+       DeviceType = deviceType;
+       Token = token;
+       RefreshToken = refreshToken;
+       UserId = userId;
+       TokenExpiresAt = tokenExpiry;
+       RefreshTokenExpiresAt = refreshTokenExpiry;
+    }
     public Guid Id { get; set; }
-    public required Guid TenantId { get; set; }
-    public required string Token { get; set; }
-    public required string RefreshToken { get; set; }
-    public required Guid UserId { get; set; }
+    public Guid TenantId { get; set; }
+    public string Token { get; set; }
+    public string RefreshToken { get; set; }
+    public Guid UserId { get; set; }
     public User User { get; set; } = null!;
     
     public DeviceType DeviceType { get; set; } = DeviceType.WEB;

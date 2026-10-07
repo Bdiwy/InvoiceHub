@@ -31,7 +31,7 @@ public class AuthService(
         var refreshToken = Guid.NewGuid().ToString("N");
         var (tokenExpiry, refreshTokenExpiry) = GetExpiryWindows(parsedDeviceType);
 
-        var tokenRegistration = CreateTokenEntity(user.Id, user.TenantId,parsedDeviceType, token, refreshToken, tokenExpiry, refreshTokenExpiry);
+        var tokenRegistration = new AccessAndRefreshToken(user.Id, user.TenantId, parsedDeviceType, token, refreshToken, tokenExpiry, refreshTokenExpiry);
         await tokenRepo.SaveMeAsync(tokenRegistration, ct);
 
         return AuthResponseDto.SuccessLogin(token, refreshToken, user);
@@ -55,7 +55,7 @@ public class AuthService(
         var newTenantId = Guid.NewGuid();
         var ownerRole = await roleQueries.FetchFirstAsync(e=> e.Name  == Role.COFOUNDERS.OWNER.ToString());
 
-        var newUser = CreateUserEntity(request.Username, request.Email, true, newTenantId, request.PhoneNumber, ownerRole!.Id);
+        var newUser = new User(newTenantId, ownerRole!.Id, request.Username, request.Email, true, request.PhoneNumber);
         newUser.Password = new PasswordHasher<User>().HashPassword(newUser, request.Password);
 
         await userCommandsRepo.SaveMeAsync(newUser, ct);
@@ -95,7 +95,7 @@ public class AuthService(
         var newRefreshToken = Guid.NewGuid().ToString("N");
         var (tokenExpiry, refreshTokenExpiry) = GetExpiryWindows(parsedDeviceType);
 
-        var newTokenEntity = CreateTokenEntity(
+        var newTokenEntity = new AccessAndRefreshToken(
             user.Id,
             user.TenantId,
             parsedDeviceType,
@@ -149,51 +149,6 @@ public class AuthService(
         var tokenExpiry = isMobile ? DateTime.UtcNow.AddDays(30) : DateTime.UtcNow.AddHours(24);
         var refreshTokenExpiry = isMobile ? DateTime.UtcNow.AddDays(35) : DateTime.UtcNow.AddDays(7);
         return (tokenExpiry, refreshTokenExpiry);
-    }
-
-    private static AccessAndRefreshToken CreateTokenEntity(
-        Guid userId,
-        Guid tenantId,
-        DeviceType deviceType,
-        string token,
-        string refreshToken,
-        DateTime tokenExpiry,
-        DateTime refreshTokenExpiry)
-    {
-        return new AccessAndRefreshToken
-        {
-            Id = Guid.NewGuid(),
-            Token = token,
-            RefreshToken = refreshToken,
-            UserId = userId,
-            TokenExpiresAt = tokenExpiry,
-            DeviceType = deviceType,
-            RefreshTokenExpiresAt = refreshTokenExpiry,
-            IsRevoked = false,
-            TenantId = tenantId
-        };
-    }
-
-    private static User CreateUserEntity(
-            string Username,
-            string Email,
-            bool IsOwner,
-            Guid TenantId,
-            string PhoneNumber,
-            Guid RoleId,
-            string Password = "" 
-        )
-    {
-        return new User
-        {
-            Username = Username ,
-            Email = Email,
-            IsOwner = IsOwner,
-            TenantId = TenantId,
-            PhoneNumber = PhoneNumber,
-            RoleId = RoleId,
-            Password = Password
-        };
     }
 }
 
